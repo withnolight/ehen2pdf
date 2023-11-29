@@ -1,4 +1,2 @@
 pillow
 requests
-tkinter
-ctypes
