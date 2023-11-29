@@ -6,7 +6,7 @@
 网络的不稳定会导致程序崩溃。
 ### 环境配置
 在python 3.10 版本测试。  
-要安装依赖，`pip install -t requirements.txt`.
+要安装依赖，`pip install -r requirements.txt`.
 ## 使用时
 在终端输入`python .\e2pdf.py`(Powershell) 或`python e2pdf.py`(CMD)
 在文本框内输入正确E-hentai画廊链接。例如<https://e-hentai.org/g/2750100/2a4420be03>。  

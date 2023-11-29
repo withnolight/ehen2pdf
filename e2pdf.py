@@ -186,7 +186,7 @@ def addtolist():
         flatg = requests.get(entry.get(), proxies=proxies, headers=headers)
         gtitle = str(re.findall(r'<h1 id="gn">([\s\S]*?)</h1>', flatg.text)[0])
         tpages = int(re.findall(r'Length:</td><td class="gdt2">([\s\S]*?) pages', flatg.text)[0])
-        firstpage = str(re.findall(r'no-repeat"><a href="([\s\S]*?)"><img alt="01"', flatg.text)[0])
+        firstpage = str(re.findall(r'no-repeat"><a href="([\s\S]*?)"><img alt=', flatg.text)[0])
         listbox.insert("end", gtitle)
         dlist.append(gallery(entry.get(), gtitle, tpages, firstpage))
     except:
