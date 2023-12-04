@@ -130,6 +130,7 @@ entry = tkinter.Entry(MainActivity, font=("微软雅黑", 15))
 entry.grid(row=1,column=0)
 listbox = tkinter.Listbox(MainActivity, font=("微软雅黑", 15))
 listbox.grid(row=2,column=0)
+
 def addtolist():
     try :
         flatg = requests.get(entry.get(), proxies=proxies, headers=headers)
@@ -141,6 +142,10 @@ def addtolist():
         firstpage = str(re.findall(r'no-repeat"><a href="([\s\S]*?)"><img alt=', flatg.text)[0])
     except:
         raise Exception("解析失败，可能是链接错误或者E站已经改版")
+    for downloaded in next(os.walk("Downloads"))[1]:
+        if gtitle == downloaded:
+            tkinter.messagebox.showinfo("提示", "该漫画已经在下载列表中")
+            return 0
     listbox.insert("end", gtitle)
     dlist.append(gallery(entry.get(), gtitle, tpages, firstpage))
 
