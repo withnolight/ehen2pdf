@@ -16,7 +16,7 @@ try:
     proxies["http"] = open("proxies.ini", "r").readline()
     proxies["https"] = open("proxies.ini", "r").readline()
 except:
-    print("未找到代理文件，使用默认代理")
+    print("未找到代理文件，使用默认代理...")
 
 print('我们仍然一无所知。')
 
@@ -80,21 +80,44 @@ class gallery:
 class ipg:
     link = ""
     def __init__(self, link):
-        self.link = link
+        self.link = link #我忘了为什么要这么写，写了有什么用，但是删了可能会报错
 
 def download1(link,count,i):
-    r = requests.get(link, proxies=proxies, headers=headers)
-    log = "第{}本漫画,正在解析第{}张图片".format(i,count)
+    try:
+        r = requests.get(link, proxies=proxies, headers=headers)
+        log = "第{}本漫画,正在解析第{}张图片".format(i,count)
+    except:
+        print("页面文件获取失败，重试中")
+        try:
+            r = requests.get(link, proxies=proxies, headers=headers)
+            log = "第{}本漫画,正在解析第{}张图片".format(i,count)
+        except:
+            print("重试失败")
+            raise Exception("无法连接到E站")
     print(log)
-    imglink = str(re.findall(r'<img id="img" src="([\s\S]*?)" style', r.text)[0])
-    print(log)
-    nextlink = str(re.search(r'<a id="next"[^>]+href="([^"]*?)"', r.text).group(1))
-    print(nextlink)
-    print(imglink)
-    print(log)
+
+    try:
+        imglink = str(re.findall(r'<img id="img" src="([\s\S]*?)" style', r.text)[0])
+    except:
+        raise Exception("图片链接解析失败，可能是链接错误或者E站已经改版")
+    
+    try:
+        nextlink = str(re.search(r'<a id="next"[^>]+href="([^"]*?)"', r.text).group(1))
+    except:
+        raise Exception("下一页链接解析失败，可能是链接错误或者E站已经改版")
+
     with open("Downloads/{}/{:0>6d}.jpg".format(dlist[i-1].title,count), "wb") as code:
-        code.write(requests.get(imglink, proxies=proxies, headers=headers).content)
-        log = "第{}本漫画，第{}张图片下载完成".format(i,count)
+        try:
+            code.write(requests.get(imglink, proxies=proxies, headers=headers).content)
+            log = "第{}本漫画，第{}张图片下载完成".format(i,count)
+        except:
+            print("下载失败，重试中")
+            try:
+                code.write(requests.get(imglink, proxies=proxies, headers=headers).content)
+                log = "第{}本漫画，第{}张图片下载完成".format(i,count)
+            except:
+                print("重试失败")
+                raise Exception("无法连接到E站")
         print(log)
     return nextlink
 
@@ -110,13 +133,17 @@ listbox.grid(row=2,column=0)
 def addtolist():
     try :
         flatg = requests.get(entry.get(), proxies=proxies, headers=headers)
+    except:
+        raise Exception("无法连接到E站")
+    try:
         gtitle = str(re.findall(r'<h1 id="gn">([\s\S]*?)</h1>', flatg.text)[0])
         tpages = int(re.findall(r'Length:</td><td class="gdt2">([\s\S]*?) pages', flatg.text)[0])
         firstpage = str(re.findall(r'no-repeat"><a href="([\s\S]*?)"><img alt=', flatg.text)[0])
-        listbox.insert("end", gtitle)
-        dlist.append(gallery(entry.get(), gtitle, tpages, firstpage))
     except:
-        raise Exception("无法连接到E站")
+        raise Exception("解析失败，可能是链接错误或者E站已经改版")
+    listbox.insert("end", gtitle)
+    dlist.append(gallery(entry.get(), gtitle, tpages, firstpage))
+
 addbutton = tkinter.Button(MainActivity, text="加入列表",font=("微软雅黑", 15),command=addtolist)
 addbutton.grid(row=1,column=2)
 def download():
