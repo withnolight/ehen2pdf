@@ -4,7 +4,18 @@ import ctypes
 import re
 import time
 import os
+import tkinter.messagebox
+import threading
 from PIL import Image
+
+def validateTitle(title):
+    rstr = r"[\:\*\?\|]"
+    rstr2 = r"[\"]"
+    rstr3 = r"[\<\>]"
+    new_title = re.sub(rstr, "_", title)  # 替换为下划线
+    new_title = re.sub(rstr2, "'", new_title)  # 替换单引号
+    new_title = re.sub(rstr3, "[]", new_title)  # 替换为方括号
+    return new_title
 
 headers = { 'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)' }
 proxies = {
@@ -13,8 +24,8 @@ proxies = {
 }
 
 try:
-    proxies["http"] = open("proxies.ini", "r").readline()
-    proxies["https"] = open("proxies.ini", "r").readline()
+    proxies["http"] = open("proxy.ini", "r").readline()
+    proxies["https"] = open("proxy.ini", "r").readline()
 except:
     print("未找到代理文件，使用默认代理...")
 
@@ -121,6 +132,10 @@ def download1(link,count,i):
         print(log)
     return nextlink
 
+def threadit(func, *args):
+    t = threading.Thread(target=func, args=args)
+    t.start()
+
 MainActivity = tkinter.Tk()
 MainActivity.title("E站漫画下载器")
 MainActivity.geometry("900x800")
@@ -137,7 +152,7 @@ def addtolist():
     except:
         raise Exception("无法连接到E站")
     try:
-        gtitle = str(re.findall(r'<h1 id="gn">([\s\S]*?)</h1>', flatg.text)[0])
+        gtitle = validateTitle(str(re.findall(r'<h1 id="gn">([\s\S]*?)</h1>', flatg.text)[0]))
         tpages = int(re.findall(r'Length:</td><td class="gdt2">([\s\S]*?) pages', flatg.text)[0])
         firstpage = str(re.findall(r'no-repeat"><a href="([\s\S]*?)"><img alt=', flatg.text)[0])
     except:
@@ -148,10 +163,12 @@ def addtolist():
             return 0
     listbox.insert("end", gtitle)
     dlist.append(gallery(entry.get(), gtitle, tpages, firstpage))
+    entry.delete(0,"end")
 
 addbutton = tkinter.Button(MainActivity, text="加入列表",font=("微软雅黑", 15),command=addtolist)
 addbutton.grid(row=1,column=2)
 def download():
+    global dlist
     icont = 0
     for i in dlist:
         icont += 1
@@ -164,6 +181,8 @@ def download():
             except:
                 raise Exception("无法连接到E站")
         rea("Downloads/{}".format(i.title),"PDFs/{}.pdf".format(i.title))
-startbutton = tkinter.Button(MainActivity, text="开始下载",font=("微软雅黑", 15),command=download)
+    dlist = []
+    listbox.delete(0,"end")
+startbutton = tkinter.Button(MainActivity, text="开始下载",font=("微软雅黑", 15),command=lambda:threadit(download))
 startbutton.grid(row=1,column=3)
 MainActivity.mainloop()
